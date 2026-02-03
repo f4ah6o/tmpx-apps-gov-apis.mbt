@@ -1,0 +1,167 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mizchi/lib"
+
+import {
+  "moonbitlang/core/json",
+}
+
+// Values
+pub async fn download_xbrl(String, String, download_type? : Int) -> Bytes
+
+pub fn edinet_documents_url(String, Int, String) -> String
+
+pub fn edinet_xbrl_url(String, String, download_type? : Int) -> String
+
+pub async fn enrich_facilities(String, Array[Facility], String) -> Array[Facility]
+
+pub async fn enrich_facilities_with_confidence(String, Array[Facility], String) -> Array[FacilityGeo]
+
+pub async fn extract_facilities_from_xbrl(Bytes) -> Array[Facility]
+
+pub fn extract_facility_table(String) -> String?
+
+pub fn facility_score(Facility, Float) -> Float
+
+pub async fn fetch_documents(String, Int, String) -> Array[EdinetDocument]
+
+pub fn gbiz_search_url(String, String) -> String
+
+pub async fn geocode(String) -> (Float, Float)?
+
+pub async fn get_bytes(String) -> Bytes
+
+pub async fn get_text(String) -> String
+
+pub fn gsi_geocode_url(String) -> String
+
+pub async fn hazard_pixel(String, Float, Float, Int) -> HazardPixel
+
+pub fn hazard_tile_url(String, Int, Int, Int) -> String
+
+pub async fn lookup_company(String, String) -> GbizCompany?
+
+pub async fn lookup_company_with_hint(String, String, String) -> GbizCompany?
+
+pub fn mesh_code_basic(Float, Float) -> String
+
+pub fn mesh_code_half(Float, Float) -> String
+
+pub fn parse_edinet_documents(String) -> Array[EdinetDocument]
+
+pub fn parse_facility_cells(Array[String], Int, Int, Int, Float) -> Facility?
+
+pub fn parse_facility_row(String, Int, Int, Int, Float) -> Facility?
+
+pub fn parse_gbiz_companies(String) -> Array[GbizCompany]
+
+pub fn parse_gsi_geocode(String) -> (Float, Float)?
+
+pub fn render_report(CompanyReport) -> String
+
+pub fn report_to_csv(CompanyReport) -> String
+
+pub fn report_to_json(CompanyReport) -> String
+
+pub fn risk_from_pixel(HazardPixel) -> Float
+
+pub fn tile_coords(Float, Float, Int) -> (Int, Int)
+
+pub fn tile_pixel(Float, Float, Int) -> (Int, Int)
+
+pub fn version() -> String
+
+// Errors
+
+// Types and methods
+pub struct CompanyReport {
+  company_name : String
+  doc_id : String
+  facilities : Array[FacilityRisk]
+  total_score : Float
+  hazard_mode : String
+  hazard_weights : String
+}
+pub fn CompanyReport::new(String, String, Array[FacilityRisk], Float, String, String) -> Self
+pub impl Eq for CompanyReport
+pub impl Show for CompanyReport
+
+pub struct EdinetDocument {
+  doc_id : String
+  filer_name : String
+  doc_type : String
+  submit_date_time : String?
+}
+pub fn EdinetDocument::new(String, String, String, String?) -> Self
+pub impl Eq for EdinetDocument
+pub impl Show for EdinetDocument
+
+type EdinetResponse
+pub impl @json.FromJson for EdinetResponse
+
+type EdinetResult
+pub impl @json.FromJson for EdinetResult
+
+pub struct Facility {
+  name : String
+  address : String
+  lat : Float
+  lon : Float
+  asset_value : Float
+}
+pub fn Facility::new(String, String, Float, Float, Float) -> Self
+pub impl Eq for Facility
+pub impl Show for Facility
+
+pub struct FacilityGeo {
+  facility : Facility
+  confidence : Float
+}
+pub fn FacilityGeo::new(Facility, Float) -> Self
+pub impl Eq for FacilityGeo
+pub impl Show for FacilityGeo
+
+pub struct FacilityRisk {
+  facility : Facility
+  hazard : String
+  risk_score : Float
+  confidence : Float
+}
+pub fn FacilityRisk::new(Facility, String, Float, Float) -> Self
+pub impl Eq for FacilityRisk
+pub impl Show for FacilityRisk
+
+pub struct GbizCompany {
+  name : String
+  corp_number : String
+  address : String
+}
+pub fn GbizCompany::new(String, String, String) -> Self
+pub impl Eq for GbizCompany
+pub impl Show for GbizCompany
+
+type GbizResponse
+pub impl @json.FromJson for GbizResponse
+
+type GbizResult
+pub impl @json.FromJson for GbizResult
+
+type GsiGeometry
+pub impl @json.FromJson for GsiGeometry
+
+type GsiResult
+pub impl @json.FromJson for GsiResult
+
+pub struct HazardPixel {
+  r : Int
+  g : Int
+  b : Int
+  a : Int
+}
+pub fn HazardPixel::new(Int, Int, Int, Int) -> Self
+pub impl Eq for HazardPixel
+pub impl Show for HazardPixel
+
+// Type aliases
+
+// Traits
+
