@@ -2,23 +2,10 @@
 
 This file contains executable doc tests using `mbt test` blocks.
 
-## fib
+## version
 
-Calculate the n-th Fibonacci number.
-
-```mbt test
-inspect(fib(0), content="1")
-inspect(fib(1), content="1")
-inspect(fib(10), content="89")
-```
-
-## sum
-
-Sum elements in an array with optional start index and length.
+Return current library version string.
 
 ```mbt test
-let data = [1, 2, 3, 4, 5]
-inspect(sum(data~), content="15")
-inspect(sum(data~, start=2), content="12")
-inspect(sum(data~, length=3), content="6")
+inspect(version(), content="0.1.0")
 ```
