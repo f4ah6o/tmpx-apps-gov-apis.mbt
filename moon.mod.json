@@ -2,7 +2,9 @@
   "name": "mizchi/lib",
   "version": "0.1.0",
   "deps": {
-    "moonbitlang/async": "0.16.2"
+    "moonbitlang/async": "0.16.2",
+    "f4ah6o/tmpx": "0.3.0",
+    "mizchi/js": "0.10.11"
   },
   "source": "src",
   "preferred-target": "js",
