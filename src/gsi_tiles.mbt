@@ -6,7 +6,10 @@ pub fn tile_coords(lat : Float, lon : Float, zoom : Int) -> (Int, Int) {
   let lat_d = lat.to_double()
   let lon_ratio = (lon_d + 180.0) / 360.0
   let lat_rad = @math.PI * lat_d / 180.0
-  let y_ratio = (1.0 - @math.ln(@math.tan(lat_rad) + (1.0 / @math.cos(lat_rad))) / @math.PI) / 2.0
+  let y_ratio = (
+      1.0 - @math.ln(@math.tan(lat_rad) + 1.0 / @math.cos(lat_rad)) / @math.PI
+    ) /
+    2.0
   let x = Double::floor(lon_ratio * n).to_int()
   let y = Double::floor(y_ratio * n).to_int()
   (x, y)
@@ -20,7 +23,10 @@ pub fn tile_pixel(lat : Float, lon : Float, zoom : Int) -> (Int, Int) {
   let lat_d = lat.to_double()
   let lon_ratio = (lon_d + 180.0) / 360.0
   let lat_rad = @math.PI * lat_d / 180.0
-  let y_ratio = (1.0 - @math.ln(@math.tan(lat_rad) + (1.0 / @math.cos(lat_rad))) / @math.PI) / 2.0
+  let y_ratio = (
+      1.0 - @math.ln(@math.tan(lat_rad) + 1.0 / @math.cos(lat_rad)) / @math.PI
+    ) /
+    2.0
   let x = Double::floor(lon_ratio * n)
   let y = Double::floor(y_ratio * n)
   let px = Double::floor((lon_ratio * n - x) * 256.0).to_int()
@@ -29,7 +35,11 @@ pub fn tile_pixel(lat : Float, lon : Float, zoom : Int) -> (Int, Int) {
 }
 
 ///|
-extern "js" fn sample_pixel_js(url : String, px : Int, py : Int) -> @core.Promise[String] =
+extern "js" fn sample_pixel_js(
+  url : String,
+  px : Int,
+  py : Int,
+) -> @core.Promise[String] =
   #| async (url, px, py) => {
   #|   try {
   #|     const response = await fetch(url);
@@ -49,16 +59,21 @@ extern "js" fn sample_pixel_js(url : String, px : Int, py : Int) -> @core.Promis
   #| }
 
 ///|
-pub fn hazard_tile_url(dataset : String, zoom : Int, x : Int, y : Int) -> String {
+pub fn hazard_tile_url(
+  dataset : String,
+  zoom : Int,
+  x : Int,
+  y : Int,
+) -> String {
   "https://cyberjapandata.gsi.go.jp/xyz/"
-    .add(dataset)
-    .add("/")
-    .add(zoom.to_string())
-    .add("/")
-    .add(x.to_string())
-    .add("/")
-    .add(y.to_string())
-    .add(".png")
+  .add(dataset)
+  .add("/")
+  .add(zoom.to_string())
+  .add("/")
+  .add(x.to_string())
+  .add("/")
+  .add(y.to_string())
+  .add(".png")
 }
 
 ///|
@@ -75,6 +90,7 @@ pub async fn hazard_pixel(
   parse_pixel(text)
 }
 
+///|
 fn parse_pixel(text : String) -> HazardPixel {
   let parts = text.split(",").to_array()
   if parts.length() < 4 {
@@ -88,6 +104,7 @@ fn parse_pixel(text : String) -> HazardPixel {
   }
 }
 
+///|
 fn parse_int(view : StringView) -> Int {
   let value : Result[Int, @strconv.StrConvError] = try? @strconv.parse_int(view)
   match value {

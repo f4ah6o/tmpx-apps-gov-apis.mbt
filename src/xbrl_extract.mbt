@@ -30,9 +30,9 @@ pub async fn extract_facilities_from_xbrl(archive : Bytes) -> Array[Facility] {
           []
         } else {
           let header_cells = merged_header_cells(normalized)
-        let name_index = find_header_index(header_cells, "名称", 0)
-        let address_index = find_header_index(header_cells, "所在地", 1)
-        let amount_index = find_amount_index(header_cells, rows[0])
+          let name_index = find_header_index(header_cells, "名称", 0)
+          let address_index = find_header_index(header_cells, "所在地", 1)
+          let amount_index = find_amount_index(header_cells, rows[0])
           let multiplier = detect_multiplier(table_html)
           let facilities : Array[Facility] = []
           for i = 0; i < normalized.length(); i = i + 1 {
@@ -40,7 +40,10 @@ pub async fn extract_facilities_from_xbrl(archive : Bytes) -> Array[Facility] {
             if is_header_row(cells) {
               continue
             }
-            match parse_facility_cells(cells, name_index, address_index, amount_index, multiplier) {
+            match
+              parse_facility_cells(
+                cells, name_index, address_index, amount_index, multiplier,
+              ) {
               Some(facility) => facilities.push(facility)
               None => ()
             }
@@ -77,6 +80,7 @@ pub fn extract_facility_table(xbrl_xml : String) -> String? {
   }
 }
 
+///|
 fn extract_rows(table_html : String) -> Array[String] {
   let views = table_html.split("<tr").to_array()
   views.map(fn(v) { v.to_string() })
@@ -94,10 +98,13 @@ pub fn parse_facility_row(
   if cells.length() == 0 {
     None
   } else {
-    parse_facility_cells(cells, name_index, address_index, amount_index, multiplier)
+    parse_facility_cells(
+      cells, name_index, address_index, amount_index, multiplier,
+    )
   }
 }
 
+///|
 pub fn parse_facility_cells(
   cells : Array[String],
   name_index : Int,
@@ -112,7 +119,9 @@ pub fn parse_facility_cells(
     let name = cell_at(cells, name_index, 0)
     let address = cell_at(cells, address_index, 1)
     let amount_text = cell_at(cells, amount_index, cells.length() - 1)
-    if equip_index == name_index || name.contains("設備") || name.contains("区分") {
+    if equip_index == name_index ||
+      name.contains("設備") ||
+      name.contains("区分") {
       None
     } else {
       let asset_value = parse_amount(amount_text, multiplier)
@@ -121,16 +130,19 @@ pub fn parse_facility_cells(
   }
 }
 
+///|
 fn extract_cells(row_html : String) -> Array[String] {
   extract_cells_any(row_html).map(fn(c) { c.text })
 }
 
+///|
 priv struct Cell {
   text : String
   colspan : Int
   rowspan : Int
 }
 
+///|
 fn normalize_rows(rows : Array[String]) -> Array[Array[String]] {
   let normalized : Array[Array[String]] = []
   let span_values : Array[String] = []
@@ -177,6 +189,7 @@ fn normalize_rows(rows : Array[String]) -> Array[Array[String]] {
   normalized
 }
 
+///|
 fn extract_cells_any(row_html : String) -> Array[Cell] {
   let cells : Array[Cell] = []
   let mut pos = 0
@@ -198,7 +211,7 @@ fn extract_cells_any(row_html : String) -> Array[Cell] {
       break
     }
     let tag_text = safe_slice(row_html, tag_pos, tag_end + 1)
-    let close_tag = "</".add(tag_name).add(">");
+    let close_tag = "</".add(tag_name).add(">")
     let tail = safe_slice(row_html, tag_end + 1, row_html.length())
     let close_pos = match tail.find(close_tag) {
       Some(index) => index
@@ -214,6 +227,7 @@ fn extract_cells_any(row_html : String) -> Array[Cell] {
   cells
 }
 
+///|
 fn strip_tags(input : String) -> String {
   let mut out = ""
   let mut in_tag = false
@@ -229,15 +243,19 @@ fn strip_tags(input : String) -> String {
   out.replace_all(old="\u00a0", new=" ")
 }
 
+///|
 fn parse_amount(text : String, multiplier : Float) -> Float {
   let cleaned = text.replace_all(old=",", new="").replace_all(old=" ", new="")
-  let value : Result[Double, @strconv.StrConvError] = try? @strconv.parse_double(cleaned)
+  let value : Result[Double, @strconv.StrConvError] = try? @strconv.parse_double(
+    cleaned,
+  )
   match value {
     Ok(v) => Float::from_double(v) * multiplier
     Err(_) => 0.0
   }
 }
 
+///|
 fn cell_at(cells : Array[String], index : Int, fallback_index : Int) -> String {
   if index >= 0 && index < cells.length() {
     cells[index]
@@ -248,7 +266,12 @@ fn cell_at(cells : Array[String], index : Int, fallback_index : Int) -> String {
   }
 }
 
-fn find_header_index(cells : Array[String], keyword : String, fallback : Int) -> Int {
+///|
+fn find_header_index(
+  cells : Array[String],
+  keyword : String,
+  fallback : Int,
+) -> Int {
   for i = 0; i < cells.length(); i = i + 1 {
     if cells[i].contains(keyword) {
       return i
@@ -257,9 +280,12 @@ fn find_header_index(cells : Array[String], keyword : String, fallback : Int) ->
   fallback
 }
 
+///|
 fn find_amount_index(cells : Array[String], header_row : String) -> Int {
   for i = 0; i < cells.length(); i = i + 1 {
-    if cells[i].contains("帳簿") || cells[i].contains("価額") || cells[i].contains("金額") {
+    if cells[i].contains("帳簿") ||
+      cells[i].contains("価額") ||
+      cells[i].contains("金額") {
       return i
     }
   }
@@ -270,6 +296,7 @@ fn find_amount_index(cells : Array[String], header_row : String) -> Int {
   }
 }
 
+///|
 fn find_equipment_index(cells : Array[String]) -> Int {
   for i = 0; i < cells.length(); i = i + 1 {
     if cells[i].contains("設備") || cells[i].contains("区分") {
@@ -279,15 +306,20 @@ fn find_equipment_index(cells : Array[String]) -> Int {
   -1
 }
 
+///|
 fn is_header_row(cells : Array[String]) -> Bool {
   for cell in cells {
-    if cell.contains("名称") || cell.contains("所在地") || cell.contains("帳簿") || cell.contains("価額") {
+    if cell.contains("名称") ||
+      cell.contains("所在地") ||
+      cell.contains("帳簿") ||
+      cell.contains("価額") {
       return true
     }
   }
   false
 }
 
+///|
 fn detect_multiplier(table_html : String) -> Float {
   if table_html.contains("百万円") {
     1000000.0
@@ -298,6 +330,7 @@ fn detect_multiplier(table_html : String) -> Float {
   }
 }
 
+///|
 fn merged_header_cells(rows : Array[Array[String]]) -> Array[String] {
   if rows.length() == 0 {
     []
@@ -307,11 +340,17 @@ fn merged_header_cells(rows : Array[Array[String]]) -> Array[String] {
     let first = rows[0]
     let second = rows[1]
     let merged : Array[String] = []
-    let len = if first.length() > second.length() { first.length() } else { second.length() }
+    let len = if first.length() > second.length() {
+      first.length()
+    } else {
+      second.length()
+    }
     for i = 0; i < len; i = i + 1 {
       let left = if i < first.length() { first[i] } else { "" }
       let right = if i < second.length() { second[i] } else { "" }
-      let text = if left.length() == 0 { right } else if right.length() == 0 {
+      let text = if left.length() == 0 {
+        right
+      } else if right.length() == 0 {
         left
       } else {
         left.add(" ").add(right)
@@ -322,16 +361,18 @@ fn merged_header_cells(rows : Array[Array[String]]) -> Array[String] {
   }
 }
 
+///|
 fn safe_slice(input : String, start : Int, end : Int) -> String {
   let len = input.length()
   if start < 0 || end < start || start >= len {
     ""
   } else {
     let end_pos = if end > len { len } else { end }
-    input.unsafe_substring(start=start, end=end_pos)
+    input.unsafe_substring(start~, end=end_pos)
   }
 }
 
+///|
 fn find_from(s : String, needle : String, start : Int) -> Int {
   let tail = safe_slice(s, start, s.length())
   match tail.find(needle) {
@@ -340,6 +381,7 @@ fn find_from(s : String, needle : String, start : Int) -> Int {
   }
 }
 
+///|
 fn parse_span(tag : String, name : String) -> Int {
   let key = name.add("=")
   match tag.find(key) {
@@ -368,7 +410,9 @@ fn parse_span(tag : String, name : String) -> Int {
           None => trimmed
         }
       }
-      let parsed : Result[Int, @strconv.StrConvError] = try? @strconv.parse_int(value.to_string())
+      let parsed : Result[Int, @strconv.StrConvError] = try? @strconv.parse_int(
+        value.to_string(),
+      )
       match parsed {
         Ok(v) => v
         Err(_) => 1

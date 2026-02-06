@@ -9,12 +9,14 @@ pub fn mesh_code_basic(lat : Float, lon : Float) -> String {
   let v = Float::floor(b)
   let r = Float::floor((a - q) * 10.0)
   let w = Float::floor((b - v) * 10.0)
-  p.to_int().to_string()
-    .add(u.to_int().to_string())
-    .add(q.to_int().to_string())
-    .add(v.to_int().to_string())
-    .add(r.to_int().to_string())
-    .add(w.to_int().to_string())
+  p
+  .to_int()
+  .to_string()
+  .add(u.to_int().to_string())
+  .add(q.to_int().to_string())
+  .add(v.to_int().to_string())
+  .add(r.to_int().to_string())
+  .add(w.to_int().to_string())
 }
 
 ///|
@@ -31,6 +33,6 @@ pub fn mesh_code_half(lat : Float, lon : Float) -> String {
   let w = Float::floor((b - v) * 10.0)
   let sub_lat = Float::floor(((a - q) * 10.0 - r) * 2.0)
   let sub_lon = Float::floor(((b - v) * 10.0 - w) * 2.0)
-  let quadrant = (sub_lat.to_int() * 2) + sub_lon.to_int() + 1
+  let quadrant = sub_lat.to_int() * 2 + sub_lon.to_int() + 1
   base.add(quadrant.to_string())
 }

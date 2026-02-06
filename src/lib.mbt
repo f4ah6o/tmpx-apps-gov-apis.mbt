@@ -109,7 +109,11 @@ pub fn EdinetDocument::new(
 }
 
 ///|
-pub fn GbizCompany::new(name : String, corp_number : String, address : String) -> GbizCompany {
+pub fn GbizCompany::new(
+  name : String,
+  corp_number : String,
+  address : String,
+) -> GbizCompany {
   { name, corp_number, address }
 }
 
@@ -123,14 +127,12 @@ pub fn FacilityGeo::new(facility : Facility, confidence : Float) -> FacilityGeo 
 pub fn risk_from_pixel(pixel : HazardPixel) -> Float {
   if pixel.a == 0 {
     0.0
+  } else if pixel.r > 200 && pixel.g < 100 {
+    0.8
+  } else if pixel.r > 150 {
+    0.5
   } else {
-    if pixel.r > 200 && pixel.g < 100 {
-      0.8
-    } else if pixel.r > 150 {
-      0.5
-    } else {
-      0.1
-    }
+    0.1
   }
 }
 
@@ -143,31 +145,27 @@ pub fn facility_score(facility : Facility, factor : Float) -> Float {
 ///|
 pub fn render_report(report : CompanyReport) -> String {
   let header = "<h1>CorpHazard Audit</h1>"
-  let subtitle = "<p>Company: "
-    .add(report.company_name)
-    .add("</p>")
+  let subtitle = "<p>Company: ".add(report.company_name).add("</p>")
   let hazard_meta = "<p>Hazard mode: "
     .add(report.hazard_mode)
     .add(" (weights: ")
     .add(report.hazard_weights)
     .add(")</p>")
-  let score = "<p>Total score: "
-    .add(report.total_score.to_string())
-    .add("</p>")
+  let score = "<p>Total score: ".add(report.total_score.to_string()).add("</p>")
   let table_header = "<tr><th>Facility</th><th>Address</th><th>Hazard</th><th>Risk</th><th>Confidence</th></tr>"
   let table_rows = report.facilities
     .map(fn(f) {
       "<tr><td>"
-        .add(f.facility.name)
-        .add("</td><td>")
-        .add(f.facility.address)
-        .add("</td><td>")
-        .add(f.hazard)
-        .add("</td><td>")
-        .add(f.risk_score.to_string())
-        .add("</td><td>")
-        .add(f.confidence.to_string())
-        .add("</td></tr>")
+      .add(f.facility.name)
+      .add("</td><td>")
+      .add(f.facility.address)
+      .add("</td><td>")
+      .add(f.hazard)
+      .add("</td><td>")
+      .add(f.risk_score.to_string())
+      .add("</td><td>")
+      .add(f.confidence.to_string())
+      .add("</td></tr>")
     })
     .join("")
   let empty_note = if report.facilities.length() == 0 {
@@ -176,15 +174,15 @@ pub fn render_report(report : CompanyReport) -> String {
     ""
   }
   "<div class=\"report\">"
-    .add(header)
-    .add(subtitle)
-    .add(hazard_meta)
-    .add(score)
-    .add(empty_note)
-    .add("<table>")
-    .add(table_header)
-    .add(table_rows)
-    .add("</table></div>")
+  .add(header)
+  .add(subtitle)
+  .add(hazard_meta)
+  .add(score)
+  .add(empty_note)
+  .add("<table>")
+  .add(table_header)
+  .add(table_rows)
+  .add("</table></div>")
 }
 
 ///|
@@ -218,21 +216,29 @@ pub fn report_to_csv(report : CompanyReport) -> String {
   let mut rows = ""
   for item in report.facilities {
     rows = rows
-      .add(csv_cell(report.hazard_mode)).add(",")
+      .add(csv_cell(report.hazard_mode))
+      .add(",")
       .add(csv_cell(report.hazard_weights))
       .add(",")
-      .add(csv_cell(item.facility.name)).add(",")
-      .add(csv_cell(item.facility.address)).add(",")
-      .add(item.facility.lat.to_string()).add(",")
-      .add(item.facility.lon.to_string()).add(",")
-      .add(csv_cell(item.hazard)).add(",")
-      .add(item.risk_score.to_string()).add(",")
+      .add(csv_cell(item.facility.name))
+      .add(",")
+      .add(csv_cell(item.facility.address))
+      .add(",")
+      .add(item.facility.lat.to_string())
+      .add(",")
+      .add(item.facility.lon.to_string())
+      .add(",")
+      .add(csv_cell(item.hazard))
+      .add(",")
+      .add(item.risk_score.to_string())
+      .add(",")
       .add(item.confidence.to_string())
       .add("\n")
   }
   header.add(rows)
 }
 
+///|
 fn csv_cell(value : String) -> String {
   if value.contains(",") || value.contains("\"") || value.contains("\n") {
     "\"".add(value.replace_all(old="\"", new="\"\"")).add("\"")
@@ -290,29 +296,41 @@ pub async fn get_bytes(url : String) -> Bytes {
   }
 }
 
+///|
 let text_cache : @hashmap.HashMap[String, String] = @hashmap.new()
+
+///|
 let bytes_cache : @hashmap.HashMap[String, Bytes] = @hashmap.new()
 
 ///|
-pub fn edinet_documents_url(date : String, doc_type : Int, api_key : String) -> String {
+pub fn edinet_documents_url(
+  date : String,
+  doc_type : Int,
+  api_key : String,
+) -> String {
   "https://api.edinet-fsa.go.jp/api/v2/documents.json?date="
-    .add(date)
-    .add("&type=")
-    .add(doc_type.to_string())
-    .add("&Subscription-Key=")
-    .add(api_key)
+  .add(date)
+  .add("&type=")
+  .add(doc_type.to_string())
+  .add("&Subscription-Key=")
+  .add(api_key)
 }
 
 ///|
-pub fn edinet_xbrl_url(doc_id : String, api_key : String, download_type? : Int = 1) -> String {
+pub fn edinet_xbrl_url(
+  doc_id : String,
+  api_key : String,
+  download_type? : Int = 1,
+) -> String {
   "https://api.edinet-fsa.go.jp/api/v2/documents/"
-    .add(doc_id)
-    .add("?type=")
-    .add(download_type.to_string())
-    .add("&Subscription-Key=")
-    .add(api_key)
+  .add(doc_id)
+  .add("?type=")
+  .add(download_type.to_string())
+  .add("&Subscription-Key=")
+  .add(api_key)
 }
 
+///|
 struct EdinetResult {
   docID : String
   filerName : String
@@ -320,6 +338,7 @@ struct EdinetResult {
   submitDateTime : String?
 } derive(FromJson)
 
+///|
 struct EdinetResponse {
   results : Array[EdinetResult]
 } derive(FromJson)
@@ -329,8 +348,9 @@ pub fn parse_edinet_documents(json_text : String) -> Array[EdinetDocument] {
   let parsed : Result[Json, @json.ParseError] = try? @json.parse(json_text)
   match parsed {
     Ok(json) => {
-      let response_result : Result[EdinetResponse, @json.JsonDecodeError] =
-        try? @json.from_json(json)
+      let response_result : Result[EdinetResponse, @json.JsonDecodeError] = try? @json.from_json(
+        json,
+      )
       match response_result {
         Ok(response) =>
           response.results.map(fn(item) {
@@ -371,24 +391,26 @@ pub async fn download_xbrl(
   if api_key.length() == 0 || doc_id.length() == 0 {
     return []
   }
-  let url = edinet_xbrl_url(doc_id, api_key, download_type=download_type)
+  let url = edinet_xbrl_url(doc_id, api_key, download_type~)
   get_bytes(url)
 }
 
 ///|
 pub fn gbiz_search_url(name : String, api_key : String) -> String {
   "https://info.gbiz.go.jp/hojin/v1/hojin?name="
-    .add(name.replace_all(old=" ", new="%20"))
-    .add("&limit=20&offset=0&apikey=")
-    .add(api_key)
+  .add(name.replace_all(old=" ", new="%20"))
+  .add("&limit=20&offset=0&apikey=")
+  .add(api_key)
 }
 
+///|
 struct GbizResult {
   corporate_number : String
   name : String
   location : String
 } derive(FromJson)
 
+///|
 struct GbizResponse {
   results : Array[GbizResult]
 } derive(FromJson)
@@ -398,8 +420,9 @@ pub fn parse_gbiz_companies(json_text : String) -> Array[GbizCompany] {
   let parsed : Result[Json, @json.ParseError] = try? @json.parse(json_text)
   match parsed {
     Ok(json) => {
-      let response_result : Result[GbizResponse, @json.JsonDecodeError] =
-        try? @json.from_json(json)
+      let response_result : Result[GbizResponse, @json.JsonDecodeError] = try? @json.from_json(
+        json,
+      )
       match response_result {
         Ok(response) =>
           response.results.map(fn(item) {
@@ -413,10 +436,7 @@ pub fn parse_gbiz_companies(json_text : String) -> Array[GbizCompany] {
 }
 
 ///|
-pub async fn lookup_company(
-  name : String,
-  api_key : String,
-) -> GbizCompany? {
+pub async fn lookup_company(name : String, api_key : String) -> GbizCompany? {
   lookup_company_with_hint(name, "", api_key)
 }
 
@@ -437,14 +457,17 @@ pub async fn lookup_company_with_hint(
 
 ///|
 pub fn gsi_geocode_url(address : String) -> String {
-  "https://msearch.gsi.go.jp/address-search/AddressSearch?q="
-    .add(address.replace_all(old=" ", new="%20"))
+  "https://msearch.gsi.go.jp/address-search/AddressSearch?q=".add(
+    address.replace_all(old=" ", new="%20"),
+  )
 }
 
+///|
 struct GsiGeometry {
   coordinates : Array[Double]
 } derive(FromJson)
 
+///|
 struct GsiResult {
   geometry : GsiGeometry
 } derive(FromJson)
@@ -454,8 +477,9 @@ pub fn parse_gsi_geocode(json_text : String) -> (Float, Float)? {
   let parsed : Result[Json, @json.ParseError] = try? @json.parse(json_text)
   match parsed {
     Ok(json) => {
-      let results_result : Result[Array[GsiResult], @json.JsonDecodeError] =
-        try? @json.from_json(json)
+      let results_result : Result[Array[GsiResult], @json.JsonDecodeError] = try? @json.from_json(
+        json,
+      )
       match results_result {
         Ok(results) =>
           if results.length() == 0 {
@@ -494,7 +518,8 @@ pub async fn enrich_facilities_with_confidence(
   gbiz_api_key : String,
 ) -> Array[FacilityGeo] {
   let address_hint = find_address_hint(facilities)
-  let normalized_address = match lookup_company_with_hint(company_name, address_hint, gbiz_api_key) {
+  let normalized_address = match
+    lookup_company_with_hint(company_name, address_hint, gbiz_api_key) {
     Some(company) => normalize_address(company.address)
     None => ""
   }
@@ -506,17 +531,23 @@ pub async fn enrich_facilities_with_confidence(
       normalize_address(facility.address)
     }
     let address = raw_address
-    let base_confidence : Float = if facility.address.length() == 0 { 0.6 } else { 0.8 }
-    let coords = if address.length() == 0 {
-      None
+    let base_confidence : Float = if facility.address.length() == 0 {
+      0.6
     } else {
-      geocode(address)
+      0.8
     }
+    let coords = if address.length() == 0 { None } else { geocode(address) }
     match coords {
       Some((lat, lon)) =>
         enriched.push(
           FacilityGeo::new(
-            Facility::new(facility.name, address, lat, lon, facility.asset_value),
+            Facility::new(
+              facility.name,
+              address,
+              lat,
+              lon,
+              facility.asset_value,
+            ),
             1.0,
           ),
         )
@@ -530,7 +561,11 @@ pub async fn enrich_facilities_with_confidence(
               facility.lon,
               facility.asset_value,
             ),
-            if address.length() == 0 { 0.2 } else { base_confidence },
+            if address.length() == 0 {
+              0.2
+            } else {
+              base_confidence
+            },
           ),
         )
     }
@@ -538,14 +573,17 @@ pub async fn enrich_facilities_with_confidence(
   enriched
 }
 
+///|
 fn normalize_name(name : String) -> String {
-  name.replace_all(old=" ", new="")
-    .replace_all(old="　", new="")
-    .replace_all(old="・", new="")
-    .replace_all(old="株式会社", new="")
-    .replace_all(old="(株)", new="")
+  name
+  .replace_all(old=" ", new="")
+  .replace_all(old="　", new="")
+  .replace_all(old="・", new="")
+  .replace_all(old="株式会社", new="")
+  .replace_all(old="(株)", new="")
 }
 
+///|
 fn normalize_address(address : String) -> String {
   let mut value = address
   value = value.replace_all(old="　", new=" ")
@@ -570,6 +608,7 @@ fn normalize_address(address : String) -> String {
   value.trim().to_string()
 }
 
+///|
 fn extract_prefecture(address : String) -> String {
   if address.length() < 2 {
     ""
@@ -586,16 +625,18 @@ fn extract_prefecture(address : String) -> String {
   }
 }
 
+///|
 fn safe_prefix(value : String, end : Int) -> String {
   if end <= 0 {
     ""
   } else if end >= value.length() {
     value
   } else {
-    value.unsafe_substring(start=0, end=end)
+    value.unsafe_substring(start=0, end~)
   }
 }
 
+///|
 fn select_best_company(
   companies : Array[GbizCompany],
   target_name : String,
@@ -625,7 +666,8 @@ fn select_best_company(
       let pref_comp = extract_prefecture(comp_addr)
       if comp_addr == address_key {
         score = score + 2
-      } else if comp_addr.contains(address_key) || address_key.contains(comp_addr) {
+      } else if comp_addr.contains(address_key) ||
+        address_key.contains(comp_addr) {
         score = score + 1
       }
       if pref_hint.length() > 0 && pref_hint == pref_comp {
@@ -640,6 +682,7 @@ fn select_best_company(
   best
 }
 
+///|
 fn find_address_hint(facilities : Array[Facility]) -> String {
   for facility in facilities {
     if facility.address.length() > 0 {
@@ -666,11 +709,7 @@ pub async fn enrich_facilities(
     } else {
       facility.address
     }
-    let coords = if address.length() == 0 {
-      None
-    } else {
-      geocode(address)
-    }
+    let coords = if address.length() == 0 { None } else { geocode(address) }
     match coords {
       Some((lat, lon)) =>
         enriched.push(

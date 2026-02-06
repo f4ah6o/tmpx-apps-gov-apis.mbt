@@ -3,10 +3,26 @@ async fn main {
   @async.sleep(16)
   let args = js_get_args()
   let has_cli = args.length() > 1
-  let company = if has_cli { args[1] } else { env_or("COMPANY", "Example Corp") }
-  let edinet_key = if args.length() > 2 { args[2] } else { env_or("EDINET_API_KEY", "") }
-  let gbiz_key = if args.length() > 3 { args[3] } else { env_or("GBIZ_API_KEY", "") }
-  let date = if args.length() > 4 { args[4] } else { env_or("EDINET_DATE", "2024-01-01") }
+  let company = if has_cli {
+    args[1]
+  } else {
+    env_or("COMPANY", "Example Corp")
+  }
+  let edinet_key = if args.length() > 2 {
+    args[2]
+  } else {
+    env_or("EDINET_API_KEY", "")
+  }
+  let gbiz_key = if args.length() > 3 {
+    args[3]
+  } else {
+    env_or("GBIZ_API_KEY", "")
+  }
+  let date = if args.length() > 4 {
+    args[4]
+  } else {
+    env_or("EDINET_DATE", "2024-01-01")
+  }
   let days = parse_int(env_or("EDINET_DAYS", "7"), 7)
   let hazard_mode = env_or("HAZARD_MODE", "max")
   let hazard_weights = env_or("HAZARD_WEIGHTS", "")
@@ -17,14 +33,13 @@ async fn main {
   } else {
     @core.extract_facilities_from_xbrl(xbrl)
   }
-  let enriched = @core.enrich_facilities_with_confidence(company, facilities, gbiz_key)
+  let enriched = @core.enrich_facilities_with_confidence(
+    company, facilities, gbiz_key,
+  )
   let facility_risks : Array[@core.FacilityRisk] = []
   let mut total_score : Float = 0.0
   let datasets = [
-    "01_flood_l2_shinsuishin_data",
-    "04_td_dosekiryu",
-    "04_td_kyukeisha",
-    "02_takashio_shinsuishin_data",
+    "01_flood_l2_shinsuishin_data", "04_td_dosekiryu", "04_td_kyukeisha", "02_takashio_shinsuishin_data",
     "03_tsunami_shinsui_data",
   ]
   for item in enriched {
@@ -41,7 +56,7 @@ async fn main {
         @core.risk_from_pixel(pixel)
       }
       let weight = parse_weight(hazard_weights, dataset)
-      factor_sum = factor_sum + (factor * weight)
+      factor_sum = factor_sum + factor * weight
       weight_sum = weight_sum + weight
       if factor > best_factor {
         best_factor = factor
@@ -55,14 +70,24 @@ async fn main {
         factor_sum / Float::from_int(datasets.length())
       }
     } else if hazard_mode == "weighted" {
-      if weight_sum == 0.0 { 0.0 } else { factor_sum / weight_sum }
+      if weight_sum == 0.0 {
+        0.0
+      } else {
+        factor_sum / weight_sum
+      }
     } else {
       best_factor
     }
-    let risk_score = @core.facility_score(facility, effective_factor) * item.confidence
+    let risk_score = @core.facility_score(facility, effective_factor) *
+      item.confidence
     total_score = total_score + risk_score
     facility_risks.push(
-      @core.FacilityRisk::new(facility, best_hazard, risk_score, item.confidence),
+      @core.FacilityRisk::new(
+        facility,
+        best_hazard,
+        risk_score,
+        item.confidence,
+      ),
     )
   }
   let report = @core.CompanyReport::new(
@@ -71,7 +96,11 @@ async fn main {
     facility_risks,
     total_score,
     hazard_mode,
-    if hazard_weights.length() == 0 { "default" } else { hazard_weights },
+    if hazard_weights.length() == 0 {
+      "default"
+    } else {
+      hazard_weights
+    },
   )
   let output = env_or("OUTPUT", "html")
   match output {
@@ -108,19 +137,28 @@ extern "js" fn js_get_env(name : String) -> String =
   #|   return "";
   #| }
 
+///|
 fn env_or(name : String, fallback : String) -> String {
   let value = js_get_env(name)
-  if value.length() == 0 { fallback } else { value }
+  if value.length() == 0 {
+    fallback
+  } else {
+    value
+  }
 }
 
+///|
 fn parse_int(value : String, fallback : Int) -> Int {
-  let parsed : Result[Int, @strconv.StrConvError] = try? @strconv.parse_int(value)
+  let parsed : Result[Int, @strconv.StrConvError] = try? @strconv.parse_int(
+    value,
+  )
   match parsed {
     Ok(v) => v
     Err(_) => fallback
   }
 }
 
+///|
 fn parse_weight(spec : String, dataset : String) -> Float {
   if spec.length() == 0 {
     1.0
@@ -132,7 +170,9 @@ fn parse_weight(spec : String, dataset : String) -> Float {
         let key = pair[0].to_string().trim().to_string()
         if key == dataset {
           let value = pair[1].to_string().trim().to_string()
-          let parsed : Result[Double, @strconv.StrConvError] = try? @strconv.parse_double(value)
+          let parsed : Result[Double, @strconv.StrConvError] = try? @strconv.parse_double(
+            value,
+          )
           return match parsed {
             Ok(v) => Float::from_double(v)
             Err(_) => 1.0
@@ -144,13 +184,18 @@ fn parse_weight(spec : String, dataset : String) -> Float {
   }
 }
 
+///|
 let doc_id_cache : @hashmap.HashMap[String, String] = @hashmap.new()
 
 ///|
 // removed unused select_doc_id
 
 ///|
-async fn select_doc_id_range(start_date : String, days : Int, api_key : String) -> String {
+async fn select_doc_id_range(
+  start_date : String,
+  days : Int,
+  api_key : String,
+) -> String {
   if api_key.length() == 0 {
     return "DOC-000"
   }
@@ -183,6 +228,7 @@ async fn select_doc_id_range(start_date : String, days : Int, api_key : String) 
   result
 }
 
+///|
 extern "js" fn js_shift_date(date : String, offset_days : Int) -> String =
   #| (date, offset) => {
   #|   const d = new Date(date);
