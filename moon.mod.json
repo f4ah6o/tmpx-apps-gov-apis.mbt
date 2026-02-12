@@ -2,9 +2,9 @@
   "name": "mizchi/lib",
   "version": "0.1.0",
   "deps": {
-    "moonbitlang/async": "0.16.5",
+    "moonbitlang/async": "0.16.6",
     "f4ah6o/tmpx": "0.4.0",
-    "mizchi/js": "0.10.11"
+    "mizchi/js": "0.10.14"
   },
   "readme": "README.mbt.md",
   "repository": "",
