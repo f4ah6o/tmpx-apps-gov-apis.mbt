@@ -1,9 +1,9 @@
 import {
   "mizchi/js/core",
-  "moonbitlang/core/bench" as @bench,
-  "moonbitlang/core/env" as @env,
-  "moonbitlang/core/json" as @json,
-  "moonbitlang/core/math" as @math,
-  "moonbitlang/core/strconv" as @strconv,
-  "moonbitlang/core/hashmap" as @hashmap,
+  "moonbitlang/core/bench" @bench,
+  "moonbitlang/core/env",
+  "moonbitlang/core/json" @json,
+  "moonbitlang/core/math" @math,
+  "moonbitlang/core/strconv" @strconv,
+  "moonbitlang/core/hashmap" @hashmap,
 }
