@@ -120,12 +120,16 @@ async fn main {
 }
 
 ///|
-extern "js" fn js_get_args() -> Array[String] =
+extern "js" fn js_get_args_ffi() -> FixedArray[String] =
   #| () => {
   #|   if (typeof process !== "undefined" && process.argv) return process.argv;
   #|   if (typeof Deno !== "undefined" && Deno.args) return Deno.args;
   #|   return [];
   #| }
+
+fn js_get_args() -> Array[String] {
+  Array::from_fixed_array(js_get_args_ffi())
+}
 
 ///|
 extern "js" fn js_get_env(name : String) -> String =
